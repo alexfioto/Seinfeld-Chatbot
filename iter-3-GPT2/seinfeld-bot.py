@@ -1,7 +1,3 @@
-
-# # GTP2 Generated Seinfeld ChatBot with Recommender System and Character Prediction
-
-
 from aitextgen.TokenDataset import TokenDataset
 from aitextgen.tokenizers import train_tokenizer
 from aitextgen.utils import GPT2ConfigCPU
@@ -11,25 +7,6 @@ import spacy
 import pandas as pd
 import imdb
 import warnings
-
-
-warnings.filterwarnings(action='ignore')
-
-print('Model Loading...')
-
-# Loading dictionary with all of the episode names and dialogues
-with open('../data/episode_dialogues.pkl', 'rb') as f:
-    episode_dialogues = pickle.load(f)
-
-
-# Loading BERT embeddings for Seinfeld Epiosdes
-with open('/Users/alexander.fioto/Models/seinfeld_bert_spacy.pkl', 'rb') as f:
-    seinfeld_vectors = pickle.load(f)
-
-
-# Opening SVC Model
-with open('../data/svc_classification_model.pkl', 'rb') as f:
-    svc_model = pickle.load(f)
 
 
 
@@ -224,14 +201,4 @@ class SeinfeldChatbot():
         elif prediction == 1:
             print('You sound like Kramer!')
         else:
-            print('You sound like Elaine!')
-   
-    
-        
-        
-
-
-# Instantiate and start chat.
-bot = SeinfeldChatbot()
-bot.chat()
-
+            print('You sound like Elaine!'
