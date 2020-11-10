@@ -2,7 +2,7 @@
 
 Using dialogue from the television show Seinfeld, I am attempting to create a generative chatbot using a seq2seq model and accuracy as my objective performance metric. I will utilize the keras deep learning library to implement my project.
 
-The Seinfeld dialogue dataset has been downloaded from Kaggle. The data set consists diaglogue from the complete series.
+The Seinfeld dialogue dataset has been downloaded from Kaggle. The data set consists of diaglogue from the complete series.
 
 https://www.kaggle.com/thec03u5/seinfeld-chronicles
 
