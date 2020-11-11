@@ -1,3 +1,6 @@
+![](./data/Seinfeld_logo.png)
+
+
 # Problem Statement:
 
 Using dialogue from the television show Seinfeld, I am attempting to create a generative chatbot using a seq2seq model and accuracy as my objective performance metric. I will utilize the keras deep learning library to implement my project.
@@ -30,9 +33,69 @@ I have divided up my executive summary into 3 sections corresponding to each ite
 
 ## Seq2Seq Model
 
-In preparation for the seq2seq model, the dataset was cleaned and missing values were removed. The dialogue included stage directions. The stage directions were removed. There were a few lines of dialogue that were very long. To make the model a bit more managable, the maximum length of dialogue was limited to 50 characters.
+In preparation for the seq2seq model, the dataset was cleaned and missing values were removed. The dialogue included stage directions. The stage directions were removed. There were a few lines of dialogue that were very long. To make the model a bit more managable, the maximum length of dialogue was limited to 50 characters. The dialogue was then formatted properly to be accepted into the network. 
 
-The dialogue was then formatted properly to be accepted into the network. 
+
+#### Issues and concerns:
+When trained on all of the data, the model is very large. The filesize has been an issue when reading in to notebooks and python scripts. 
+
+The hidden and cell states are somehow altered when reading in a model from keras load_model(). I trained a few models in Google Colaboratory and saved them to my personal machine. The model did not perform as well after reloading in the model.
+
+Limiting the length of dialogue can impact the model negatively. The idea is that every line of dialogue is conversational. Cutting it short by length might make the dialogue disjointed and not perform well. Finding the correct type of data for this model is harder than actually implementing it!
+
+#### Moving forward:
+I would like to get to the bottom of the hidden and cell state issue to see if I can maintain performance level.
+
+I would like to try this same model with a different data set. Short, conversational data would be the most appropriate. Online chat data would be great.
+
+#### Conclusion:
+Overall, the Seq2Seq model concept is very fascinating! I do believe there are better models architectures suited for this particular chatbot. I am eager to explore Chatterbot and GTP2 text generation. 
+
+
+
+## Chatterbot
+
+#### Issues and concerns:
+
+#### Moving Forward:
+
+
+#### Conclusions:
+
+
+
+## GPT2
+
+After playing around with GPT2 (Generative Pretrained Transformer-2), in a few online notebooks, I decided to create a chatbot with a slight variation. This chatbot doesn't chat 1:1 but rather places you in the middle of dialogue. The model generates multiple lines of code and I have parsed it down to managable chunks. Also, this iteration has much more functionality than the two previous bots. 
+
+I utilized Google Colab for initial training. The aitextgen module works very well with Google and utilized Google Drive for accessing text files and saving large models.
+
+### spaCy Recommender
+
+Utilizing spaCy's built in word embeddings, this chatbot comes loaded with word embeddings for each Seinfeld episode's dialogue. The bot stores user chat information, vectorizes, creates embeddings and calculates the cosine similarity user_chat and every episode. 
+
+The recommender utilizes the imdbpy api to grab episode names and plot. The recommender will also return a customized youtube search link for the episode of choice. 
+
+### Character Classification
+
+
+
+
+#### Issues and concerns:
+
+The spaCy NLP file is too big. There must be a better way to summarize the text
+
+#### Moving Forward:
+Topic modeling to help with the recommender
+
+
+#### Conclusions:
+
+## Topic Modeling
+
+
+
+
 
 
 
