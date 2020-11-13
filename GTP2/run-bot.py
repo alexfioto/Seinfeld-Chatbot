@@ -11,6 +11,7 @@ import spacy
 import pandas as pd
 import imdb
 import warnings
+import webbrowser
 
 #from seinfeldbot import SeinfeldChatbot
 
@@ -102,11 +103,14 @@ class SeinfeldChatbot():
             print(f'JERRY: What do you want, {self.name}?')
             chat = True
             while chat:
+
                 text_input = input('>>> ')
+
                 if text_input in self.exit_commands:
                     chat = False
                     print('KRAMER: Who turns down a junior mint?')
                     print('Thanks for chatting!')
+
                 elif 'recommend' in text_input:
                     res = input("JERRY: Did you want an episode recommendation? It might take a minute.\n>>> ")
                     if res.lower() in self.positive_responses:
@@ -116,10 +120,15 @@ class SeinfeldChatbot():
                             self.initialize_recommender()
                     else:
                         print('JERRY: Oh. well what you said wasn\'t clear.')
-                        
                 
                 elif 'sound like' in text_input.lower():
                         self.predict_character()
+                
+                elif 'temp' in text_input.lower():
+                    res = input('JERRY: Did you want to change the temperature (or creativity)?\n>>> ')
+                    if res.lower() in self.positive_responses:
+                        res = input('JERRY: Input a float greater than 0 and less than or equal to 1\n>>> ')
+                        self.change_temp(float(res))
 
                 else:
                     self.generate_response(text_input)
@@ -199,20 +208,23 @@ class SeinfeldChatbot():
             
         else:
             for i in range(len(self.scores_list_)):
-                episode = self.series_['episodes'][self.scores_list_[i][0]][self.scores_list_[i][1]]
-                title = episode['title']
-                plot = episode['plot']
-                res = input(f'JERRY: Based on your chat dialogue, I would recommend you check out Seinfeld Season {self.scores_list_[i][0]}, episode {self.scores_list_[i][1]}, "{title}". Do you want to know the plot?\n>>> ')
-                if res.lower() in self.positive_responses:
-                    print(plot)
-                res = input('Do you want a link to the show?\n>>> ')
-                if res.lower() in self.positive_responses:
-                    print(f'https://www.youtube.com/results?search_query=seinfeld+season+{self.scores_list_[i][0]}+episode+{self.scores_list_[i][1]}')
-                res = input('JERRY: Do you want another recommendation?\n>>> ')
-                if res == 'no':
-                    print('JERRY: OK.')
-                    break
+                try:
 
+                    episode = self.series_['episodes'][self.scores_list_[i][0]][self.scores_list_[i][1]]
+                    title = episode['title']
+                    plot = episode['plot']
+                    res = input(f'JERRY: Based on your chat dialogue, I would recommend you check out Seinfeld Season {self.scores_list_[i][0]}, episode {self.scores_list_[i][1]}, "{title}". Do you want to know the plot?\n>>> ')
+                    if res.lower() in self.positive_responses:
+                        print(plot)
+                    res = input('Do you want to watch the show?\n>>> ')
+                    if res.lower() in self.positive_responses:
+                        webbrowser.open_new(f'https://youtube.com/results?search_query=seinfeld+season+{self.scores_list_[i][0]}+episode+{self.scores_list_[i][1]}')
+                    res = input('JERRY: Do you want another recommendation?\n>>> ')
+                    if res == 'no':
+                        print('JERRY: OK.')
+                        break
+                except:
+                    continue
             
     ##### Character Predictor#####
     

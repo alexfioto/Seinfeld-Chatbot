@@ -1,3 +1,7 @@
+
+# # GTP2 Generated Seinfeld ChatBot with Recommender System and Character Prediction
+
+
 from aitextgen.TokenDataset import TokenDataset
 from aitextgen.tokenizers import train_tokenizer
 from aitextgen.utils import GPT2ConfigCPU
@@ -7,7 +11,38 @@ import spacy
 import pandas as pd
 import imdb
 import warnings
+import time
+import webbrowser
 
+import speech_recognition as sr
+from gtts import gTTS
+from pygame import mixer
+
+#from seinfeldbot import SeinfeldChatbot
+
+
+warnings.filterwarnings(action='ignore')
+
+print('Model Loading...')
+
+# Loading dictionary with all of the episode names and dialogues
+with open('../data/episode_dialogues.pkl', 'rb') as f:
+    episode_dialogues = pickle.load(f)
+
+
+# Loading BERT embeddings for Seinfeld Epiosdes
+with open('/Users/alexander.fioto/Models/seinfeld_bert_spacy.pkl', 'rb') as f:
+    seinfeld_vectors = pickle.load(f)
+
+
+# Opening SVC Model
+with open('../data/svc_classification_model.pkl', 'rb') as f:
+    svc_model = pickle.load(f)
+
+if svc_model:
+    print('Character Model Loaded')
+else:
+    print("Character Model Failed to Load")
 
 
 class SeinfeldChatbot():
@@ -31,6 +66,24 @@ class SeinfeldChatbot():
         self.transformer = transformer
         self.recommender_initialized = False
         print("Model Loaded!")
+    
+    def bot_speak(self, text):
+        speech = gTTS(text=text, lang='en', slow=False)
+        speech.save('text.mp3')
+        mixer.init()
+        mixer.music.load('text.mp3')
+        mixer.music.play()
+        print(text)
+        time.sleep(3)
+
+    def speech_input(self):
+        r = sr.Recognizer()
+        time.sleep(3)
+        with sr.Microphone() as source:
+            print("Say something!")
+            audio = r.listen(source)
+        text = r.recognize_google(audio)
+        return text
         
         
     def change_temp(self, temp):
@@ -41,18 +94,21 @@ class SeinfeldChatbot():
         
         
     def greet(self):
-        res = input("Welcome to the SeinfeldChatbot! Do you want to chat?")
+        
+        self.bot_speak("Welcome to the SeinfeldChatbot! Do you want to chat?")
+        res = self.speech_input()
         if res.lower() not in self.negative_responses:
-            res = input("GEORGE: Can I get your name, pal?")
+            self.bot_speak("Can I get your name?")
+            res = self.speech_input()
             if res in self.negative_responses:
-                print('GEORGE: Fine. Stay anonymous. See if I care.')
+                self.bot_speak('Fine. Stay anonymous.')
             else:
                 self.name = res
                 self.user_name_title = self.name.upper() + ': '
             self.greeted = True
             self.chat()
         else:
-            print('JERRY: OK. Fine. Leave. GO!')
+            self.bot_speak('Come back when you are feeling more loquacious')
     
     def generate_response(self, text_input):
         if text_input[-1] not in self.punctuation:
@@ -62,36 +118,46 @@ class SeinfeldChatbot():
                                             temperature = .4,
                                             return_as_list = True)
         self.split_text_ = text[0].split('\n\n')
-        if len(self.split_text_[-1]) < 16:
-            self.split_text_.pop()
-        final_text = ''.join(self.split_text_)
+        self.split_text_.pop()
+        final_text = ''.join(self.split_text_[:3])
         self.chat_dialogue_complete += final_text + '\n'
-        print(final_text)
+        self.bot_speak(final_text)
+        time.sleep(8)
         
     
     def chat(self):
         if self.greeted == True:
-            print(f'JERRY: What do you want, {self.name}?')
+            self.bot_speak(f'JERRY: What do you want, {self.name}?')
             chat = True
             while chat:
-                text_input = input(f'{self.user_name_title}')
+
+                text_input = self.speech_input()
+
                 if text_input in self.exit_commands:
                     chat = False
-                    print('KRAMER: Who turns down a junior mint?')
-                    print('Thanks for chatting!')
+                    self.bot_speak('KRAMER: Who turns down a junior mint?')
+                    self.bot_speak('Thanks for chatting!')
+
                 elif 'recommend' in text_input:
-                    res = input("JERRY: Did you want an episode recommendation? It might take a minute.")
+                    self.bot_speak("Did you want an episode recommendation? It might take a minute.")
+                    res = self.speech_input()
                     if res.lower() in self.positive_responses:
                         if self.recommender_initialized:
                             self.episode_recommendation()
                         else:
                             self.initialize_recommender()
                     else:
-                        print('JERRY: Oh. well what you said wasn\'t clear.')
-                        
+                        self.bot_speak('I didn\'t understand.')
                 
                 elif 'sound like' in text_input.lower():
                         self.predict_character()
+                
+                elif 'temp' in text_input.lower():
+                    self.bot_speak('Did you want to change the temperature (or creativity)?')
+                    res = self.speech_input()
+                    if res.lower() in self.positive_responses:
+                        res = input('JERRY: Type a float greater than 0 and less than or equal to 1')
+                        self.change_temp(float(res))
 
                 else:
                     self.generate_response(text_input)
@@ -127,11 +193,12 @@ class SeinfeldChatbot():
 
     def update_similarities(self):
         if not self.recommender_initialized:
-            res = input('You need to initialize the recommender system. Would you like to initialize?')
+            self.bot_speak('You need to initialize the recommender system. Would you like to initialize?')
+            res = self.speech_input()
             if res.lower() in self.positive_responses:
                 self.initialize_recommender()
             else:
-                print('OK. Hope you come back later!')
+                self.bot_speak('OK. Hope you come back later!')
         
         else:
 
@@ -146,45 +213,54 @@ class SeinfeldChatbot():
                 self.scores_list_ = []
                 for i in range(len(self.similarity_scores)):
                     self.scores_list_.append([int(self.similarity_scores[i][0][1:3]), int(self.similarity_scores[i][0][-2:])])
-                print('JERRY: Thanks for you patience. That took way too long.')
+                self.bot_speak('Thanks for you patience. That took way too long.')
+                time.sleep(5)
             else:
-                print('KRAMER: It looks like you haven\'t chatted yet. Please chat for a while and come back!')
+                self.bot_speak('It looks like you haven\'t chatted yet. Please chat for a while and come back!')
     
     def episode_recommendation(self):
         
         
         if not self.recommender_initialized:
-            res = input('JERRY: You need to initialize the recommender. Want to do it?')
+            self.bot_speak('You need to initialize the recommender. Want to do it?')
+            res = self.speech_input()
             if res.lower() in self.positive_responses:
                 self.initialize_recommender()
             else:
-                print('JERRY: OK.')
+                self.bot_speak('OK.')
         
         
         elif not self.similarity_scores:
-            res = input('ELAINE: You need to get similarity scores first. Want to do grab them?')
+            self.bot_speak('You need to get similarity scores first. Want to do grab them?')
+            res = self.speech_input()
             if res.lower() in self.positive_responses:
                 self.update_similarities()
             else:
-                print('GEORGE: Fine. Have it that way.')
+                self.bot_speak('Fine. Have it that way.')
     
             
         else:
             for i in range(len(self.scores_list_)):
-                episode = self.series_['episodes'][self.scores_list_[i][0]][self.scores_list_[i][1]]
-                title = episode['title']
-                plot = episode['plot']
-                res = input(f'JERRY: Based on your chat dialogue, I would recommend you check out Seinfeld Season {self.scores_list_[i][0]}, episode {self.scores_list_[i][1]}, "{title}". Do you want to know the plot?')
-                if res.lower() in self.positive_responses:
-                    print(plot)
-                res = input('Do you want to watch the show?')
-                if res.lower() in self.positive_responses:
-                    webbrowser.open_new(f'https://youtube.com/results?search_query=seinfeld+season+{self.scores_list_[i][0]}+episode+{self.scores_list_[i][1]}')
-                res = input('JERRY: Do you want another recommendation?')
-                if res == 'no':
-                    print('JERRY: OK.')
-                    break
+                try:
 
+                    episode = self.series_['episodes'][self.scores_list_[i][0]][self.scores_list_[i][1]]
+                    title = episode['title']
+                    plot = episode['plot']
+                    self.bot_speak(f'Based on your chat dialogue, I would recommend you check out Seinfeld Season {self.scores_list_[i][0]}, episode {self.scores_list_[i][1]}, "{title}". Do you want to know the plot?')
+                    res = self.speech_input()
+                    if res.lower() in self.positive_responses:
+                        print(plot)
+                    self.bot_speak('Do you want to watch it?')
+                    res = self.speech_input()
+                    if res.lower() in self.positive_responses:
+                        webbrowser.open_new(f'https://youtube.com/results?search_query=seinfeld+season+{self.scores_list_[i][0]}+episode+{self.scores_list_[i][1]}')
+                    self.bot_speak('Do you want another recommendation?')
+                    res = self.speech_input()
+                    if res.lower not in self.positive_responses:
+                        self.bot_speak('OK.')
+                        break
+                except:
+                    continue
             
     ##### Character Predictor#####
     
@@ -195,10 +271,20 @@ class SeinfeldChatbot():
             prediction = svc_model.predict([self.chat_dialogue])
             
         if prediction == 0:
-            print('You sound like Jerry!')
+            self.bot_speak('You sound like Jerry!')
         elif prediction == 1:
-            print('You sound like George!')
+            self.bot_speak('You sound like George!')
         elif prediction == 1:
-            print('You sound like Kramer!')
+            self.bot_speak('You sound like Kramer!')
         else:
-            print('You sound like Elaine!')
+            self.bot_speak('You sound like Elaine!')
+   
+    
+        
+        
+
+
+# Instantiate and start chat.
+bot = SeinfeldChatbot()
+bot.chat()
+
