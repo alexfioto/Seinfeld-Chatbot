@@ -92,7 +92,7 @@ This is an easy to use module and very quick to train and store. The "Artistic" 
 
 After playing around with GPT2 (Generative Pretrained Transformer-2) in a few online notebooks, I decided to create a chatbot with a slight variation for interface. This iteration of chatbot doesn't chat 1:1 but rather places you in the middle of dialogue. The model generates multiple lines of text which is then parsed down to coherent chunks. I included more functionality to this iteration than the two previous bots. 
 
-I utilized Google Colab for initial training. The aitextgen module is intended to work with Google and utilizes Google Drive for accessing text files and saving large models. Thanks to Max Woolf for the module and interface.
+I utilized Google Colab for initial training. You can find the notebook here: https://colab.research.google.com/drive/1WeL65rcgGCFK-8k5prHZg06i2w-Q_YLS. The aitextgen module is intended to work with Google and utilizes Google Drive for accessing text files and saving large models. Thanks to Max Woolf for the module and interface.
 
 You can go here for more information on GTP2: https://github.com/openai/gpt-2
 
