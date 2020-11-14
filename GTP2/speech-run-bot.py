@@ -68,13 +68,13 @@ class SeinfeldChatbot():
         print("Model Loaded!")
     
     def bot_speak(self, text):
-        speech = gTTS(text=text, lang='en', slow=False)
+        speech = gTTS(text=text, slow=False)
         speech.save('text.mp3')
         mixer.init()
         mixer.music.load('text.mp3')
         mixer.music.play()
         print(text)
-        time.sleep(3)
+        time.sleep(2)
 
     def speech_input(self):
         r = sr.Recognizer()
@@ -83,7 +83,13 @@ class SeinfeldChatbot():
             print("Say something!")
             audio = r.listen(source)
         text = r.recognize_google(audio)
+        if text in self.exit_commands:
+            self.exit()
         return text
+
+    def exit(self):
+        self.bot_speak('Thanks for Chatting!')
+        exit()
         
         
     def change_temp(self, temp):
@@ -213,8 +219,8 @@ class SeinfeldChatbot():
                 self.scores_list_ = []
                 for i in range(len(self.similarity_scores)):
                     self.scores_list_.append([int(self.similarity_scores[i][0][1:3]), int(self.similarity_scores[i][0][-2:])])
-                self.bot_speak('Thanks for you patience. That took way too long.')
-                time.sleep(5)
+                self.bot_speak('Thanks for your patience.')
+                time.sleep(3)
             else:
                 self.bot_speak('It looks like you haven\'t chatted yet. Please chat for a while and come back!')
     
@@ -247,13 +253,18 @@ class SeinfeldChatbot():
                     title = episode['title']
                     plot = episode['plot']
                     self.bot_speak(f'Based on your chat dialogue, I would recommend you check out Seinfeld Season {self.scores_list_[i][0]}, episode {self.scores_list_[i][1]}, "{title}". Do you want to know the plot?')
+                    time.sleep(6)
                     res = self.speech_input()
                     if res.lower() in self.positive_responses:
-                        print(plot)
+                        self.bot_speak(plot)
+                        time.sleep(15)
                     self.bot_speak('Do you want to watch it?')
                     res = self.speech_input()
                     if res.lower() in self.positive_responses:
+                        self.bot_speak('Great. I hope you enjoy!')
                         webbrowser.open_new(f'https://youtube.com/results?search_query=seinfeld+season+{self.scores_list_[i][0]}+episode+{self.scores_list_[i][1]}')
+                        input('Enter any key to continue')
+                        break
                     self.bot_speak('Do you want another recommendation?')
                     res = self.speech_input()
                     if res.lower not in self.positive_responses:
