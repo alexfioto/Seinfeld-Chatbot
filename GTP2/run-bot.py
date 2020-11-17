@@ -218,7 +218,7 @@ class SeinfeldChatbot():
                         print(plot)
                     res = input('Do you want to watch the show?\n>>> ')
                     if res.lower() in self.positive_responses:
-                        webbrowser.open_new(f'https://youtube.com/results?search_query=seinfeld+season+{episode}')
+                        webbrowser.open_new(f'https://youtube.com/results?search_query=seinfeld+{title}+season+{self.scores_list_[i][0]}+episode+{self.scores_list_[i][1]}')
                     res = input('JERRY: Do you want another recommendation?\n>>> ')
                     if res == 'no':
                         print('JERRY: OK.')
