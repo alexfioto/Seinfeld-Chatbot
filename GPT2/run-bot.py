@@ -14,8 +14,6 @@ import warnings
 import webbrowser
 
 #from seinfeldbot import SeinfeldChatbot
-
-
 warnings.filterwarnings(action='ignore')
 
 print('Model Loading...')
@@ -44,6 +42,7 @@ class SeinfeldChatbot():
     def __init__(self, name='Buddy', transformer='en_trf_bertbaseuncased_lg', fp='/Users/alexander.fioto/Models/Larger-Seinfeld-Model/', temperature = .4):
         self.user_name_title = 'USER: '
         self.chat_dialogue = ''
+        self.last_line = ''
         self.chat_dialogue_complete = ''
         self.name = name
         self.fp = fp
@@ -87,6 +86,7 @@ class SeinfeldChatbot():
     def generate_response(self, text_input):
         if text_input[-1] not in self.punctuation:
             text_input += '.'
+        self.last_line = text_input
         self.chat_dialogue += ' ' + text_input
         text = self.model.generate(prompt = f'{self.user_name_title}' + text_input,
                                             temperature = .4,
@@ -232,13 +232,13 @@ class SeinfeldChatbot():
         if text:
             prediction = svc_model.predict([text])
         else:
-            prediction = svc_model.predict([self.chat_dialogue])
+            prediction = svc_model.predict([self.last_line])
             
         if prediction == 0:
             print('You sound like Jerry!')
         elif prediction == 1:
             print('You sound like George!')
-        elif prediction == 1:
+        elif prediction == 2:
             print('You sound like Kramer!')
         else:
             print('You sound like Elaine!')
