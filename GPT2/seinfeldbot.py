@@ -1,12 +1,14 @@
-from aitextgen.TokenDataset import TokenDataset
-from aitextgen.tokenizers import train_tokenizer
-from aitextgen.utils import GPT2ConfigCPU
+#from aitextgen.TokenDataset import TokenDataset
+#from aitextgen.tokenizers import train_tokenizer
+#from aitextgen.utils import GPT2ConfigCPU
 from aitextgen import aitextgen
 import pickle
 import spacy
 import pandas as pd
 import imdb
 import warnings
+from sentence_transformers import SentenceTransformer
+
 
 
 
@@ -29,7 +31,10 @@ class SeinfeldChatbot():
                                vocab_file=fp + 'aitextgen-vocab.json',
                                merges_file=fp + 'aitextgen-merges.txt')
         self.transformer = transformer
-        self.recommender_initialized = False
+        self.sentence_transformer_model = sentence_transformer_model
+        self.episode_vectors_dict = episode_vectors_dict
+        self.episode_ids = episode_ids
+
         print("Model Loaded!")
         
         
@@ -59,7 +64,7 @@ class SeinfeldChatbot():
             text_input += '.'
         self.chat_dialogue += ' ' + text_input
         text = self.model.generate(prompt = f'{self.user_name_title}' + text_input,
-                                            temperature = .4,
+                                            temperature = self.temperature,
                                             return_as_list = True)
         self.split_text_ = text[0].split('\n\n')
         if len(self.split_text_[-1]) < 16:
@@ -101,67 +106,26 @@ class SeinfeldChatbot():
     
     
     #### Episode Recommender #### 
-    def initialize_recommender(self):
-        '''
-        This method initializes the recommender engine. You may use other pretrained transformers such as
-        en_trf_bertbaseuncased_lg. If you use BERT, you will see more accurate results but it will take longer
-        to load!
-        '''
-        if not self.recommender_initialized:
-            self.nlp_ = spacy.load(self.transformer)
-            self.recommender_initialized = True
-            df = pd.read_csv('../data/clean_scripts.csv', index_col=0)
-            self.episodes_ = df['SEID'].unique()
-
-            ia = imdb.IMDb()
-            self.series_ = ia.get_movie('0098904')
-            ia.update(self.series_, 'episodes')
-            sorted(self.series_['episodes'].keys())
-            print('Recommender Initialized!')
-            self.update_similarities()
-            self.episode_recommendation()
-        else:
-            print("The recommender is already initialized.")
-        
-        
 
     def update_similarities(self):
-        if not self.recommender_initialized:
-            res = input('You need to initialize the recommender system. Would you like to initialize?')
-            if res.lower() in self.positive_responses:
-                self.initialize_recommender()
-            else:
-                print('OK. Hope you come back later!')
-        
+        if self.chat_dialogue:
+            similarity_scores = []
+            user_dialogue_vector = self.sentence_transformer_model.encode(self.chat_dialogue).reshape(1, -1)
+            for episode, vector in self.episode_vectors_dict.items():
+                similarity_scores.append((episode, cosine_similarity(user_dialogue_vector, vector)[0][0])
+            similarity_scores.sort(key=lambda x: x[1], reverse = True)
+            self.similarity_scores = similarity_scores
+            self.scores_list_ = []
+            for i in range(len(self.similarity_scores)):
+                self.scores_list_.append([int(self.similarity_scores[i][0][1:3]), int(self.similarity_scores[i][0][-2:])])
+            print('JERRY: Thanks for you patience. That took way too long.')
         else:
+            print('KRAMER: It looks like you haven\'t chatted yet. Please chat for a while and come back!')
 
-            if self.chat_dialogue:
-                similarity_scores = []
-                for episode in self.episodes_:
-                    doc1 = self.nlp_(self.chat_dialogue)
-                    doc2 = seinfeld_vectors[episode]
-                    similarity_scores.append((episode, doc1.similarity(doc2)))
-                similarity_scores.sort(key=lambda x: x[1], reverse = True)
-                self.similarity_scores = similarity_scores
-                self.scores_list_ = []
-                for i in range(len(self.similarity_scores)):
-                    self.scores_list_.append([int(self.similarity_scores[i][0][1:3]), int(self.similarity_scores[i][0][-2:])])
-                print('JERRY: Thanks for you patience. That took way too long.')
-            else:
-                print('KRAMER: It looks like you haven\'t chatted yet. Please chat for a while and come back!')
     
     def episode_recommendation(self):
-        
-        
-        if not self.recommender_initialized:
-            res = input('JERRY: You need to initialize the recommender. Want to do it?')
-            if res.lower() in self.positive_responses:
-                self.initialize_recommender()
-            else:
-                print('JERRY: OK.')
-        
-        
-        elif not self.similarity_scores:
+    
+        if not self.similarity_scores:
             res = input('ELAINE: You need to get similarity scores first. Want to do grab them?')
             if res.lower() in self.positive_responses:
                 self.update_similarities()

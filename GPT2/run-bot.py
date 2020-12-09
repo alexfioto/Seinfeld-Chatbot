@@ -7,7 +7,6 @@ from aitextgen.tokenizers import train_tokenizer
 from aitextgen.utils import GPT2ConfigCPU
 from aitextgen import aitextgen
 import pickle
-import spacy
 import pandas as pd
 import imdb
 import warnings
